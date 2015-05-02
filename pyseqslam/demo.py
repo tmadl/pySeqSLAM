@@ -11,6 +11,7 @@ from parameters import defaultParameters
 from utils import AttributeDict
 import matplotlib
 import matplotlib.pyplot as plt
+from copy import deepcopy
 
 from seqslam import *
 
@@ -36,22 +37,22 @@ def demo():
     
     ds.preprocessing = AttributeDict()
     ds.preprocessing.save = 1
-    ds.preprocessing.load = 1
+    ds.preprocessing.load = 0 #1
     #ds.crop=[1 1 60 32]  # x0 y0 x1 y1  cropping will be done AFTER resizing!
     ds.crop=[]
     
     spring=ds
 
-
+    ds2 = deepcopy(ds)
     # Nordland winter dataset
-    ds.name = 'winter'
+    ds2.name = 'winter'
     #ds.imagePath = '../datasets/nordland/64x32-grayscale-1fps/winter'
-    ds.imagePath = 'C:/Scientific Software/SeqSLAM/datasets/nordland/64x32-grayscale-1fps/winter'       
-    ds.saveFile = '%s-%d-%d-%d' % (ds.name, ds.imageIndices[0], ds.imageSkip, ds.imageIndices[-1])
+    ds2.imagePath = 'C:/Scientific Software/SeqSLAM/datasets/nordland/64x32-grayscale-1fps/winter'       
+    ds2.saveFile = '%s-%d-%d-%d' % (ds2.name, ds2.imageIndices[0], ds2.imageSkip, ds2.imageIndices[-1])
     # ds.crop=[5 1 64 32]
-    ds.crop=[]
+    ds2.crop=[]
     
-    winter=ds        
+    winter=ds2      
 
     params.dataset = [spring, winter]
 

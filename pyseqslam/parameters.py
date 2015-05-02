@@ -9,7 +9,7 @@ def defaultParameters():
     params.DO_PREPROCESSING = 1
     params.DO_RESIZE        = 0
     params.DO_GRAYLEVEL     = 1
-    params.DO_PATCHNORMALIZATION    = 1
+    params.DO_PATCHNORMALIZATION    = 1 #!!!! 1
     params.DO_SAVE_PREPROCESSED_IMG = 0
     params.DO_DIFF_MATRIX   = 1
     params.DO_CONTRAST_ENHANCEMENT  = 1
@@ -34,7 +34,7 @@ def defaultParameters():
     params.matching.vmax = 1.2  
     params.matching.Rwindow = 10
     params.matching.save = 1
-    params.matching.load = 1
+    params.matching.load = 0 #1
     
     # parameters for contrast enhancement on difference matrix
     params.contrastEnhancement = AttributeDict()  
@@ -43,11 +43,11 @@ def defaultParameters():
     # load old results or re-calculate? save results?
     params.differenceMatrix = AttributeDict()
     params.differenceMatrix.save = 1
-    params.differenceMatrix.load = 1
+    params.differenceMatrix.load = 0 #1
     
     params.contrastEnhanced = AttributeDict()
     params.contrastEnhanced.save = 1
-    params.contrastEnhanced.load = 1
+    params.contrastEnhanced.load = 0 #1
     
     # suffix appended on files containing the results
     params.saveSuffix=''
