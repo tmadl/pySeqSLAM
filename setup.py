@@ -1,11 +1,5 @@
 '''
-pySeqSLAM: Python implementation of SeqSLAM by Michael Milford. Performs place recognition by matching sequences of images.
-
-Note that "python setup.py test" invokes pytest on the package. With appropriately
-configured setup.cfg, this will check both xxx_test modules and docstrings.
-
-Copyright 2015, Tamas Madl.
-Licensed under MIT.
+Python implementation of SeqSLAM by Michael Milford. Performs place recognition by matching sequences of images.
 '''
 import sys
 from setuptools import setup, find_packages
@@ -35,8 +29,8 @@ setup(name="pySeqSLAM",
         'Programming Language :: Python'
       ],
       keywords="place recognition, SeqSLAM", # Separate with spaces
-      author="Tamas Madl",
-      author_email="tamas.madl@gmail.com",
+      author="",
+      author_email="",
       url="",
       license="MIT",
       packages=find_packages(exclude=['examples', 'tests']),
@@ -46,7 +40,7 @@ setup(name="pySeqSLAM",
       cmdclass={'test': PyTest},
       
       # TODO: List of packages that this one depends upon:   
-      install_requires=['numpy', 'matplotlib', 'attrdict'],
+      install_requires=['scipy', 'numpy', 'matplotlib'],
       # TODO: List executable scripts, provided by the package (this is just an example)
       entry_points={
         'console_scripts': 

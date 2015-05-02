@@ -1,8 +1,9 @@
-from attrdict import AttrDict
+from utils import AttributeDict
+from PIL import Image
 
 def defaultParameters():
 
-    params = AttrDict()
+    params = AttributeDict()
 
     # switches
     params.DO_PREPROCESSING = 1
@@ -16,15 +17,16 @@ def defaultParameters():
 
 
     # parameters for preprocessing
-    class DS: pass
-    params.downsample = DS()
+    params.downsample = AttributeDict()
     params.downsample.size = [32, 64]  # height, width
-    params.downsample.method = 'lanczos3'
+    params.downsample.method = Image.LANCZOS
+    params.normalization = AttributeDict()
     params.normalization.sideLength = 8
     params.normalization.mode = 1
             
     
     # parameters regarding the matching between images
+    params.matching = AttributeDict()
     params.matching.ds = 10 
     params.matching.Rrecent=5
     params.matching.vmin = 0.8
@@ -34,13 +36,16 @@ def defaultParameters():
     params.matching.save = 1
     params.matching.load = 1
     
-    # parameters for contrast enhancement on difference matrix  
+    # parameters for contrast enhancement on difference matrix
+    params.contrastEnhancement = AttributeDict()  
     params.contrastEnhancement.R = 10
 
     # load old results or re-calculate? save results?
+    params.differenceMatrix = AttributeDict()
     params.differenceMatrix.save = 1
     params.differenceMatrix.load = 1
     
+    params.contrastEnhanced = AttributeDict()
     params.contrastEnhanced.save = 1
     params.contrastEnhanced.load = 1
     

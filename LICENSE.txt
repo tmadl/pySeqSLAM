@@ -1,7 +1,7 @@
  Copyright 2013, Niko Sünderhauf
  niko@etit.tu-chemnitz.de
 
- This file is part of OpenSeqSLAM.
+ This is a Python implementation of OpenSeqSLAM
 
  OpenSeqSLAM is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

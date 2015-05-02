@@ -1,0 +1,1 @@
+sphinx-apidoc -H pySeqSLAM -f -o doc pyseqslam
