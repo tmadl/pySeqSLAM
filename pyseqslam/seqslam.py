@@ -10,7 +10,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-
 class SeqSLAM():
     params = None
     
@@ -56,11 +55,10 @@ class SeqSLAM():
                 d.preprocessing = np.copy(SeqSLAM.preprocessing(p))
                 results.dataset.append(d)
     
-                #if self.params.dataset[i].preprocessing.save:
-                #    results_preprocessing = results.dataset[i].preprocessing
-                #    savemat(filename, results_preprocessing)
-        print np.sum(np.sum(results.dataset[0].preprocessing))
-        print np.sum(np.sum(results.dataset[1].preprocessing))
+                if self.params.dataset[i].preprocessing.save:
+                    results_preprocessing = results.dataset[i].preprocessing
+                    savemat(filename, {'results_preprocessing': results_preprocessing})
+
         return results
     
     @staticmethod
@@ -120,7 +118,6 @@ class SeqSLAM():
             images[:,j] = img.flatten(0)   
             j += 1
             
-        print "checksum:"+str(np.sum(np.sum(images)))
         return images
     
     
@@ -147,6 +144,19 @@ class SeqSLAM():
                 #print str((n[i], n[i+1], m[j], m[j+1]))
         return img
     
+    def getDifferenceMatrix(self, data0preproc, data1preproc):
+        # TODO parallelize
+        n = data0preproc.shape[1]
+        m = data1preproc.shape[1]
+        D = np.zeros((n, m))   
+    
+        #parfor?
+        for i in range(n):
+            d = data1preproc - np.tile(data0preproc[:,i],(m, 1)).T
+            D[i,:] = np.sum(np.abs(d), 0)/n
+            
+        return D
+    
     def doDifferenceMatrix(self, results):
         filename = '%s/difference-%s-%s%s.mat' % (self.params.savePath, self.params.dataset[0].saveFile, self.params.dataset[1].saveFile, self.params.saveSuffix)  
     
@@ -162,23 +172,26 @@ class SeqSLAM():
     
             print('Calculating image difference matrix ...')
     
-            n = results.dataset[0].preprocessing.shape[1]
-            m = results.dataset[1].preprocessing.shape[1]
-    
-            D = np.zeros((n, m))   
-    
-            #TODO parfor
-            for i in range(n):
-                d = results.dataset[1].preprocessing - np.tile(results.dataset[0].preprocessing[:,i],(m, 1)).T
-                D[i,:] = np.sum(np.abs(d), 0)/n
-                
-            results.D=D
+            results.D=self.getDifferenceMatrix(results.dataset[0].preprocessing, results.dataset[1].preprocessing)
             
             # save it
             if self.params.differenceMatrix.save:                   
-                savemat(filename, {'D':D})
+                savemat(filename, {'D':results.D})
             
         return results
+    
+    def enhanceContrast(self, D):
+        # TODO parallelize
+        DD = np.zeros(D.shape)
+    
+        #parfor?
+        for i in range(D.shape[0]):
+            a=np.max((0, i-self.params.contrastEnhancement.R/2))
+            b=np.min((D.shape[0], i+self.params.contrastEnhancement.R/2+1))                                                        
+            v = D[a:b, :]
+            DD[i,:] = (D[i,:] - np.mean(v, 0)) / np.std(v, 0, ddof=1)  
+        
+        return DD-np.min(np.min(DD))
     
     def doContrastEnhancement(self, results):
         
@@ -190,19 +203,9 @@ class SeqSLAM():
             results.DD = dd.DD
         else:
             print('Performing local contrast enhancement on difference matrix ...')
-    
-            DD = np.zeros(results.D.shape)
-    
-            D=results.D
-            #TODO parfor
-            for i in range(results.D.shape[0]):
-                a=np.max((0, i-self.params.contrastEnhancement.R/2))
-                b=np.min((D.shape[0], i+self.params.contrastEnhancement.R/2+1))                                                        
-                v = D[a:b, :]
-                DD[i,:] = (D[i,:] - np.mean(v, 0)) / np.std(v, 0, ddof=1)                                             
-                          
+               
             # let the minimum distance be 0
-            results.DD = DD-np.min(np.min(DD))
+            results.DD = self.enhanceContrast(results.D)
 
             # save it?
             if self.params.contrastEnhanced.save:                        
@@ -221,17 +224,12 @@ class SeqSLAM():
             results.matches = m.matches          
         else:
         
-            matches = np.nan*np.ones((results.DD.shape[1],2))
-            
             print('Searching for matching images ...')
             
             # make sure ds is dividable by two
             self.params.matching.ds = self.params.matching.ds + np.mod(self.params.matching.ds,2)
-            
-            DD = results.DD
-            #TODO parfor
-            for N in range(self.params.matching.ds/2, results.DD.shape[1]-self.params.matching.ds/2):
-                matches[N,:] = self.findSingleMatch(DD, N)
+        
+            matches = self.getMatches(results.DD)
                    
             # save it
             if self.params.matching.save:
@@ -241,53 +239,61 @@ class SeqSLAM():
             
         return results
     
-    def findSingleMatch(self, DD, N):
-        # We shall search for matches using velocities between
-        # params.matching.vmin and params.matching.vmax.
-        # However, not every vskip may be neccessary to check. So we first find
-        # out, which v leads to different trajectories:
+    def getMatches(self, DD):
+        # TODO parallelize
+        matches = np.nan*np.ones((DD.shape[1],2))    
+        # parfor?
+        for N in range(self.params.matching.ds/2, DD.shape[1]-self.params.matching.ds/2):
+            # find a single match
             
-        move_min = self.params.matching.vmin * self.params.matching.ds    
-        move_max = self.params.matching.vmax * self.params.matching.ds    
-        
-        move = np.arange(int(move_min), int(move_max)+1)
-        v = move.astype(float) / self.params.matching.ds
-        
-        idx_add = np.tile(np.arange(0, self.params.matching.ds+1), (len(v),1))
-        idx_add = np.floor(idx_add * np.tile(v, (idx_add.shape[1], 1)).T)
-        
-        # this is where our trajectory starts
-        n_start = N + 1 - self.params.matching.ds/2    
-        x= np.tile(np.arange(n_start , n_start+self.params.matching.ds+1), (len(v), 1))    
-        
-        #TODO idx_add and x now equivalent to MATLAB, dh 1 indexing
-        score = np.zeros(DD.shape[0])    
-        
-        # add a line of inf costs so that we penalize running out of data
-        DD=np.vstack((DD, np.infty*np.ones((1,DD.shape[1]))))
+            # We shall search for matches using velocities between
+            # params.matching.vmin and params.matching.vmax.
+            # However, not every vskip may be neccessary to check. So we first find
+            # out, which v leads to different trajectories:
                 
-        y_max = DD.shape[0]        
-        xx = (x-1) * y_max
-        
-        flatDD = DD.flatten(1)
-        for s in range(1, DD.shape[0]):   
-            y = np.copy(idx_add+s)
-            y[y>y_max]=y_max     
-            idx = (xx + y).astype(int)
-            ds = np.sum(flatDD[idx-1],1)
-            score[s-1] = np.min(ds)
-        
-        
-        # find min score and 2nd smallest score outside of a window
-        # around the minimum 
-        
-        min_idx = np.argmin(score)
-        min_value=score[min_idx]
-        window = np.arange(np.max((0, min_idx-self.params.matching.Rwindow/2)), np.min((len(score), min_idx+self.params.matching.Rwindow/2)))
-        not_window = list(set(range(len(score))).symmetric_difference(set(window))) #xor
-        min_value_2nd = np.min(score[not_window])
-        
-        match = [min_idx + self.params.matching.ds/2, min_value / min_value_2nd]    
-        return match
+            move_min = self.params.matching.vmin * self.params.matching.ds    
+            move_max = self.params.matching.vmax * self.params.matching.ds    
+            
+            move = np.arange(int(move_min), int(move_max)+1)
+            v = move.astype(float) / self.params.matching.ds
+            
+            idx_add = np.tile(np.arange(0, self.params.matching.ds+1), (len(v),1))
+            idx_add = np.floor(idx_add * np.tile(v, (idx_add.shape[1], 1)).T)
+            
+            # this is where our trajectory starts
+            n_start = N + 1 - self.params.matching.ds/2    
+            x= np.tile(np.arange(n_start , n_start+self.params.matching.ds+1), (len(v), 1))    
+            
+            #TODO idx_add and x now equivalent to MATLAB, dh 1 indexing
+            score = np.zeros(DD.shape[0])    
+            
+            # add a line of inf costs so that we penalize running out of data
+            DD=np.vstack((DD, np.infty*np.ones((1,DD.shape[1]))))
+                    
+            y_max = DD.shape[0]        
+            xx = (x-1) * y_max
+            
+            flatDD = DD.flatten(1)
+            for s in range(1, DD.shape[0]):   
+                y = np.copy(idx_add+s)
+                y[y>y_max]=y_max     
+                idx = (xx + y).astype(int)
+                ds = np.sum(flatDD[idx-1],1)
+                score[s-1] = np.min(ds)
+            
+            
+            # find min score and 2nd smallest score outside of a window
+            # around the minimum 
+            
+            min_idx = np.argmin(score)
+            min_value=score[min_idx]
+            window = np.arange(np.max((0, min_idx-self.params.matching.Rwindow/2)), np.min((len(score), min_idx+self.params.matching.Rwindow/2)))
+            not_window = list(set(range(len(score))).symmetric_difference(set(window))) #xor
+            min_value_2nd = np.min(score[not_window])
+            
+            match = [min_idx + self.params.matching.ds/2, min_value / min_value_2nd]
+            matches[N,:] = match
+                
+        return matches
     
     

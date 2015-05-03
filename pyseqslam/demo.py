@@ -12,6 +12,7 @@ from utils import AttributeDict
 import matplotlib
 import matplotlib.pyplot as plt
 from copy import deepcopy
+import time
 
 from seqslam import *
 
@@ -30,7 +31,7 @@ def demo():
     ds.prefix='images-'
     ds.extension='.png'
     ds.suffix=''
-    ds.imageSkip = 20     # use every n-nth image
+    ds.imageSkip = 100     # use every n-nth image
     ds.imageIndices = range(1, 35700, ds.imageSkip)    
     ds.savePath = 'results'
     ds.saveFile = '%s-%d-%d-%d' % (ds.name, ds.imageIndices[0], ds.imageSkip, ds.imageIndices[-1])
@@ -67,8 +68,11 @@ def demo():
     
     ## now process the dataset
    
-    ss = SeqSLAM(params)   
-    results = ss.run()          
+    ss = SeqSLAM(params)  
+    t1=time.time()
+    results = ss.run()
+    t2=time.time()          
+    print "time taken: "+str(t2-t1)
     
     ## show some results
     
@@ -82,7 +86,6 @@ def demo():
     if len(results.matches) > 0:
         m = results.matches[:,0]
         thresh=0.9  # you can calculate a precision-recall plot by varying this threshold
-        print m
         m[results.matches[:,1]>thresh] = np.nan # remove the weakest matches
         plt.plot(m,'.')      # ideally, this would only be the diagonal
         plt.title('Matchings')   
