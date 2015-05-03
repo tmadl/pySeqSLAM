@@ -30,7 +30,7 @@ def demo():
     ds.prefix='images-'
     ds.extension='.png'
     ds.suffix=''
-    ds.imageSkip = 100     # use every n-nth image
+    ds.imageSkip = 20     # use every n-nth image
     ds.imageIndices = range(1, 35700, ds.imageSkip)    
     ds.savePath = 'results'
     ds.saveFile = '%s-%d-%d-%d' % (ds.name, ds.imageIndices[0], ds.imageSkip, ds.imageIndices[-1])
@@ -82,9 +82,9 @@ def demo():
     if len(results.matches) > 0:
         m = results.matches[:,0]
         thresh=0.9  # you can calculate a precision-recall plot by varying this threshold
-        #m[results.matches[:,1]>thresh] = float('nan')  # remove the weakest matches
         print m
-        plt.plot(m[results.matches[:,1]<=thresh],'.')      # ideally, this would only be the diagonal
+        m[results.matches[:,1]>thresh] = np.nan # remove the weakest matches
+        plt.plot(m,'.')      # ideally, this would only be the diagonal
         plt.title('Matchings')   
         plt.show()    
     else:

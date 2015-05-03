@@ -21,13 +21,10 @@ class SeqSLAM():
         # begin with preprocessing of the images
         if self.params.DO_PREPROCESSING:
             results = self.doPreprocessing()
-            
+        
         # image difference matrix             
         if self.params.DO_DIFF_MATRIX:
             results = self.doDifferenceMatrix(results)
-        
-        plt.imshow(results.D, interpolation="nearest", cmap = cm.Greys_r)
-        plt.show()
         
         # contrast enhancement
         if self.params.DO_CONTRAST_ENHANCEMENT:
@@ -35,9 +32,6 @@ class SeqSLAM():
         else:
             if self.params.DO_DIFF_MATRIX:
                 results.DD = results.D
-        
-        plt.imshow(results.DD, interpolation="nearest", cmap = cm.Greys_r)
-        plt.show()
         
         # find the matches
         if self.params.DO_FIND_MATCHES:
@@ -70,6 +64,12 @@ class SeqSLAM():
         return results
     
     @staticmethod
+    def rgb2gray(rgb):
+        r, g, b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
+        gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
+        return gray
+    
+    @staticmethod
     def preprocessing(params):
         print('Preprocessing dataset %s, indices %d - %d ...' % (params.dataset.name, params.dataset.imageIndices[0], params.dataset.imageIndices[-1]))
         # allocate memory for all the processed images
@@ -95,7 +95,8 @@ class SeqSLAM():
             
             # convert to grayscale
             if params.DO_GRAYLEVEL:
-                img = img.convert('L') #LA to include alpha          
+                #img = img.convert('L') #LA to include alpha       
+                img = SeqSLAM.rgb2gray(np.asarray(img))   
             
             # resize the image
             if params.DO_RESIZE:
@@ -115,9 +116,6 @@ class SeqSLAM():
             # shall we save the result?
             if params.DO_SAVE_PREPROCESSED_IMG:
                 pass
-                        
-            #plt.imshow(img, interpolation="nearest", cmap = cm.Greys_r)
-            #plt.show()            
             
             images[:,j] = img.flatten(0)   
             j += 1
@@ -130,14 +128,14 @@ class SeqSLAM():
     def patchNormalize(img, params):
         s = params.normalization.sideLength    
         
-        n = range(0, img.shape[0]+1, s)
-        m = range(0, img.shape[1]+1, s)
+        n = range(0, img.shape[0]+2, s)
+        m = range(0, img.shape[1]+2, s)
             
         for i in range(len(n)-1):
             for j in range(len(m)-1):
                 p = img[n[i]:n[i+1], m[j]:m[j+1]]
                 
-                pp=np.copy(p.flatten(0))
+                pp=np.copy(p.flatten(1))
                 
                 if params.normalization.mode != 0:
                     pp=pp.astype(float)
