@@ -8,8 +8,11 @@ Quick start:
      ```cd datasets/norland; ./getDataset.bash; ```
      
  - Run demo: 
- 
-     ```python demo.py```
+
+     ```
+     cd pyseqslam
+     python demo.py
+     ```
      
      (This will match the spring sequence of the nordland dataset against the winter sequence. To change which datasets are used, set the environment variables DATASET_1_PATH and DATASET_2_PATH)
 
