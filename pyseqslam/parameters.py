@@ -19,7 +19,10 @@ def defaultParameters():
     # parameters for preprocessing
     params.downsample = AttributeDict()
     params.downsample.size = [32, 64]  # height, width
-    params.downsample.method = Image.LANCZOS
+    try:
+        params.downsample.method = Image.LANCZOS
+    except:
+        params.downsample.method = Image.ANTIALIAS
     params.normalization = AttributeDict()
     params.normalization.sideLength = 8
     params.normalization.mode = 1

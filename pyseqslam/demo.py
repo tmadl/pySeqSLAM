@@ -13,6 +13,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import time
+import os
 
 from seqslam import *
 
@@ -26,8 +27,14 @@ def demo():
     # Nordland spring dataset
     ds = AttributeDict()
     ds.name = 'spring'
-    #ds.imagePath = '../datasets/nordland/64x32-grayscale-1fps/spring'
-    ds.imagePath = 'C:/Scientific Software/SeqSLAM/datasets/nordland/64x32-grayscale-1fps/spring'    
+    
+    try:
+        path = os.environ['DATASET_1_PATH']
+    except:
+        path = '../datasets/nordland/64x32-grayscale-1fps/spring'
+        print "Warning: Environment variable DATASET_1_PATH not found! Trying '"+path+"'"
+    ds.imagePath = path
+    
     ds.prefix='images-'
     ds.extension='.png'
     ds.suffix=''
@@ -48,7 +55,11 @@ def demo():
     # Nordland winter dataset
     ds2.name = 'winter'
     #ds.imagePath = '../datasets/nordland/64x32-grayscale-1fps/winter'
-    ds2.imagePath = 'C:/Scientific Software/SeqSLAM/datasets/nordland/64x32-grayscale-1fps/winter'       
+    try:
+        path = os.environ['DATASET_2_PATH']
+    except:
+        path = '../datasets/nordland/64x32-grayscale-1fps/winter'
+        print "Warning: Environment variable DATASET_2_PATH not found! Trying '"+path+"'"
     ds2.saveFile = '%s-%d-%d-%d' % (ds2.name, ds2.imageIndices[0], ds2.imageSkip, ds2.imageIndices[-1])
     # ds.crop=[5 1 64 32]
     ds2.crop=[]
@@ -65,9 +76,7 @@ def demo():
     # where to save / load the results
     params.savePath='results'
               
-    
     ## now process the dataset
-   
     ss = SeqSLAM(params)  
     t1=time.time()
     results = ss.run()
@@ -75,16 +84,8 @@ def demo():
     print "time taken: "+str(t2-t1)
     
     ## show some results
-    
-    # set(0, 'DefaultFigureColor', 'white')
-    
-    # Now results.matches(:,1) are the matched winter images for every 
-    # frame from the spring dataset.
-    # results.matches(:,2) are the matching score 0<= score <=1
-    # The LARGER the score, the WEAKER the match.
-    
     if len(results.matches) > 0:
-        m = results.matches[:,0]
+        m = results.matches[:,0] # The LARGER the score, the WEAKER the match.
         thresh=0.9  # you can calculate a precision-recall plot by varying this threshold
         m[results.matches[:,1]>thresh] = np.nan # remove the weakest matches
         plt.plot(m,'.')      # ideally, this would only be the diagonal

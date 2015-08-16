@@ -23,7 +23,7 @@ version = "0.1"
 setup(name="pySeqSLAM",
       version=version,
       description="Python implementation of SeqSLAM by Michael Milford. Performs place recognition by matching sequences of images.",
-      long_description=open("README.rst").read(),
+      long_description=open("README.md").read(),
       classifiers=[ # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
         'Development Status :: 1 - Planning',
         'Programming Language :: Python'
