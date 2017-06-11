@@ -7,7 +7,7 @@ def defaultParameters():
 
     # switches
     params.DO_PREPROCESSING = 1
-    params.DO_RESIZE        = 0
+    params.DO_RESIZE        = 1
     params.DO_GRAYLEVEL     = 1
     params.DO_PATCHNORMALIZATION    = 1 #!!!! 1
     params.DO_SAVE_PREPROCESSED_IMG = 0

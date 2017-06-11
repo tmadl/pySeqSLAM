@@ -83,22 +83,22 @@ class SeqSLAM():
         
         # for every image ....
         for i in (params.dataset.imageIndices):
-            filename = '%s/%s%05d%s%s' % (params.dataset.imagePath, \
+            filename = '%s/%s%04d%s%s' % (params.dataset.imagePath, \
                 params.dataset.prefix, \
                 i, \
                 params.dataset.suffix, \
                 params.dataset.extension)
             
             img = Image.open(filename)
-            
+
+            # resize the image
+            if params.DO_RESIZE:
+                img = img.resize(params.downsample.size, params.downsample.method)
+
             # convert to grayscale
             if params.DO_GRAYLEVEL:
                 #img = img.convert('L') #LA to include alpha       
                 img = SeqSLAM.rgb2gray(np.asarray(img))   
-            
-            # resize the image
-            if params.DO_RESIZE:
-                img = img.resize(params.downsample.size, params.downsample.method)
             
             img = np.copy(np.asarray(img))
             #img.flags.writeable = True
@@ -115,7 +115,7 @@ class SeqSLAM():
             if params.DO_SAVE_PREPROCESSED_IMG:
                 pass
             
-            images[:,j] = img.flatten(0)   
+            images[:,j] = img.flatten(0)
             j += 1
             
         return images
@@ -279,8 +279,7 @@ class SeqSLAM():
                 y[y>y_max]=y_max     
                 idx = (xx + y).astype(int)
                 ds = np.sum(flatDD[idx-1],1)
-                score[s-1] = np.min(ds)
-            
+                score[s-1] = np.min(ds)            
             
             # find min score and 2nd smallest score outside of a window
             # around the minimum 
@@ -295,5 +294,3 @@ class SeqSLAM():
             matches[N,:] = match
                 
         return matches
-    
-    

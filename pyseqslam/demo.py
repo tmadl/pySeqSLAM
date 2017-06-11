@@ -1,12 +1,3 @@
-# -*- coding: utf8 -*-
-"""
-     OpenSeqSLAM
-     Copyright 2013, Niko S��nderhauf Chemnitz University of Technology niko@etit.tu-chemnitz.de
-
-     pySeqSLAM is an open source Python implementation of the original SeqSLAM algorithm published by Milford and Wyeth at ICRA12 [1]. SeqSLAM performs place recognition by matching sequences of images.
-     
-     [1] Michael Milford and Gordon F. Wyeth (2012). SeqSLAM: Visual Route-Based Navigation for Sunny Summer Days and Stormy Winter Nights. In Proc. of IEEE Intl. Conf. on Robotics and Automation (ICRA)
-"""
 from parameters import defaultParameters
 from utils import AttributeDict
 import matplotlib
@@ -26,20 +17,14 @@ def demo():
     
     # Nordland spring dataset
     ds = AttributeDict()
-    ds.name = 'spring'
+    ds.name = 'train'
+    ds.imagePath = '../datasets/loam/train'
     
-    try:
-        path = os.environ['DATASET_1_PATH']
-    except:
-        path = '../datasets/nordland/64x32-grayscale-1fps/spring'
-        print "Warning: Environment variable DATASET_1_PATH not found! Trying '"+path+"'"
-    ds.imagePath = path
-    
-    ds.prefix='images-'
-    ds.extension='.png'
+    ds.prefix='left'
+    ds.extension='.jpg'
     ds.suffix=''
-    ds.imageSkip = 100     # use every n-nth image
-    ds.imageIndices = range(1, 35700, ds.imageSkip)    
+    ds.imageSkip = 1     # use every n-nth image
+    ds.imageIndices = range(10, 310, ds.imageSkip)    
     ds.savePath = 'results'
     ds.saveFile = '%s-%d-%d-%d' % (ds.name, ds.imageIndices[0], ds.imageSkip, ds.imageIndices[-1])
     
@@ -49,24 +34,23 @@ def demo():
     #ds.crop=[1 1 60 32]  # x0 y0 x1 y1  cropping will be done AFTER resizing!
     ds.crop=[]
     
-    spring=ds
+    train=ds
 
     ds2 = deepcopy(ds)
     # Nordland winter dataset
-    ds2.name = 'winter'
-    #ds.imagePath = '../datasets/nordland/64x32-grayscale-1fps/winter'
-    try:
-        path = os.environ['DATASET_2_PATH']
-    except:
-        path = '../datasets/nordland/64x32-grayscale-1fps/winter'
-        print "Warning: Environment variable DATASET_2_PATH not found! Trying '"+path+"'"
+    ds2.name = 'test'
+    ds2.imageSkip = 1     # use every n-nth image
+    ds2.imageIndices = range(10, 310, ds.imageSkip)    
+
+    test_name = 'test_T15_R1.5'
+    ds2.imagePath = '../datasets/loam/'+test_name
     ds2.saveFile = '%s-%d-%d-%d' % (ds2.name, ds2.imageIndices[0], ds2.imageSkip, ds2.imageIndices[-1])
     # ds.crop=[5 1 64 32]
     ds2.crop=[]
     
-    winter=ds2      
+    test=ds2      
 
-    params.dataset = [spring, winter]
+    params.dataset = [train, test]
 
     # load old results or re-calculate?
     params.differenceMatrix.load = 0
@@ -86,11 +70,12 @@ def demo():
     ## show some results
     if len(results.matches) > 0:
         m = results.matches[:,0] # The LARGER the score, the WEAKER the match.
-        thresh=0.9  # you can calculate a precision-recall plot by varying this threshold
+        thresh=2  # you can calculate a precision-recall plot by varying this threshold
         m[results.matches[:,1]>thresh] = np.nan # remove the weakest matches
         plt.plot(m,'.')      # ideally, this would only be the diagonal
         plt.title('Matchings')   
-        plt.show()    
+        plt.title('Matching '+ test_name)
+        plt.savefig(test_name+'.jpg')
     else:
         print "Zero matches"          
 
